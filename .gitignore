@@ -1,0 +1,22 @@
+# Xcode
+*.xcodeproj
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# SPM
+.build/
+.swiftpm/
+
+# Firebase
+firebase/functions/node_modules/
+firebase/.firebase/
+firebase-debug.log
+.firebaserc
+
+# Secrets — remplacer le placeholder puis NE PAS committer le vrai fichier
+# CashQuest/GoogleService-Info.plist
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
