@@ -12,17 +12,25 @@ struct QuestResultView: View {
     @State private var earned: Int?
     @State private var errorText: String?
     @State private var bonusClaimed = false
+    @State private var appeared = false
 
     var body: some View {
         VStack(spacing: 18) {
+            Image(systemName: earned != nil ? "trophy.fill" : "hourglass")
+                .font(.system(size: 64))
+                .foregroundStyle(Theme.gold.gradient)
+                .scaleEffect(appeared ? 1 : 0.3)
+                .rotationEffect(.degrees(appeared ? 0 : -15))
+                .shadow(color: Theme.gold.opacity(0.5), radius: 14)
+
             Text("Score").font(.headline).foregroundStyle(.secondary)
             Text("\(score)")
-                .font(.system(size: 60, weight: .black, design: .rounded))
+                .font(.system(size: 58, weight: .black, design: .rounded))
                 .foregroundStyle(Theme.gold)
-                .transition(.scale.combined(with: .opacity))
+                .contentTransition(.numericText())
 
             if let earned {
-                Text("You earned \(earned) pts")
+                Label("You earned \(earned) pts", systemImage: "plus.circle.fill")
                     .font(.title3.bold())
                     .foregroundStyle(Theme.success)
                     .transition(.scale.combined(with: .opacity))
@@ -40,7 +48,8 @@ struct QuestResultView: View {
                     .tint(Theme.gold)
                 }
             } else if let errorText {
-                Text(errorText)
+                Label(errorText, systemImage: "exclamationmark.triangle.fill")
+                    .font(.subheadline)
                     .foregroundStyle(Theme.danger)
                     .multilineTextAlignment(.center)
             } else {
@@ -57,6 +66,9 @@ struct QuestResultView: View {
         }
         .padding()
         .animation(.spring(duration: 0.4), value: earned)
+        .onAppear {
+            withAnimation(.spring(duration: 0.6, bounce: 0.5)) { appeared = true }
+        }
         .task {
             do {
                 earned = try await data.completeQuest(gameId: gameId, score: score)

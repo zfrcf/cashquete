@@ -54,23 +54,57 @@ final class DataService: ObservableObject {
     // MARK: - Cloud Functions (toute la logique d'argent est côté serveur)
 
     func completeQuest(gameId: String, score: Int) async throws -> Int {
-        let result = try await functions.httpsCallable("completeQuest")
-            .call(["gameId": gameId, "score": score])
-        return (result.data as? [String: Any])?["points"] as? Int ?? 0
+        try await run {
+            let result = try await self.functions.httpsCallable("completeQuest")
+                .call(["gameId": gameId, "score": score])
+            return (result.data as? [String: Any])?["points"] as? Int ?? 0
+        }
     }
 
     @discardableResult
     func claimRewardedAd() async throws -> Int {
-        let result = try await functions.httpsCallable("claimRewardedAd").call([:])
-        return (result.data as? [String: Any])?["points"] as? Int ?? 0
+        try await run {
+            let result = try await self.functions.httpsCallable("claimRewardedAd").call([:])
+            return (result.data as? [String: Any])?["points"] as? Int ?? 0
+        }
     }
 
     func redeemReferral(code: String) async throws {
-        _ = try await functions.httpsCallable("redeemReferral").call(["code": code])
+        try await run {
+            _ = try await self.functions.httpsCallable("redeemReferral").call(["code": code])
+        }
     }
 
     func requestWithdrawal(method: String, points: Int, recipient: String) async throws {
-        _ = try await functions.httpsCallable("requestWithdrawal")
-            .call(["method": method, "points": points, "recipient": recipient])
+        try await run {
+            _ = try await self.functions.httpsCallable("requestWithdrawal")
+                .call(["method": method, "points": points, "recipient": recipient])
+        }
+    }
+
+    /// Traduit les erreurs techniques Firebase en messages compréhensibles.
+    private func run<T>(_ op: () async throws -> T) async throws -> T {
+        do {
+            return try await op()
+        } catch {
+            let ns = error as NSError
+            var message = ns.localizedDescription
+            if ns.domain == FunctionsErrorDomain {
+                switch FunctionsErrorCode(rawValue: ns.code) {
+                case .notFound?:
+                    message = NSLocalizedString(
+                        "Server not deployed yet — run firebase deploy (see guide).",
+                        comment: "")
+                case .unavailable?, .deadlineExceeded?, .internal?:
+                    message = NSLocalizedString(
+                        "Can't reach the server. Check your connection and try again.",
+                        comment: "")
+                default:
+                    break
+                }
+            }
+            throw NSError(domain: "CashQuest", code: ns.code,
+                          userInfo: [NSLocalizedDescriptionKey: message])
+        }
     }
 }

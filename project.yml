@@ -33,6 +33,7 @@ targets:
         CURRENT_PROJECT_VERSION: 1
         TARGETED_DEVICE_FAMILY: "1"
         OTHER_LDFLAGS: -ObjC
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     info:
       path: CashQuest/Info.plist
       properties:

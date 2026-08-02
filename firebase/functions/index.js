@@ -36,7 +36,7 @@ const DEFAULTS = {
   paypalSandbox: true,
 };
 
-const GAMES = ["quiz", "memory", "reflex"];
+const GAMES = ["quiz", "memory", "reflex", "2048"];
 
 async function getConfig() {
   const snap = await db.doc("config/app").get();

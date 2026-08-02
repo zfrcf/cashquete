@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Quiz de calcul mental : neutre en langue, donc jouable dans le monde entier.
+/// Quiz de calcul contre la montre : 7 s par question, les séries rapportent un bonus.
 struct QuizGameView: View {
     private struct Question {
         let text: String
@@ -8,23 +8,49 @@ struct QuizGameView: View {
         let correct: Int
     }
 
+    private let questionTime = 7.0
+    private let timer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
+
     @State private var questions: [Question] = []
     @State private var index = 0
     @State private var correctCount = 0
-    @State private var finished = false
+    @State private var streak = 0
+    @State private var bestStreak = 0
+    @State private var timeLeft = 7.0
     @State private var selected: Int?
+    @State private var finished = false
+
+    private var score: Int { correctCount * 8 + bestStreak * 4 }
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 18) {
             if finished {
-                QuestResultView(gameId: "quiz", score: correctCount * 10, onReplay: start)
+                QuestResultView(gameId: "quiz", score: score, onReplay: start)
             } else if index < questions.count {
                 let q = questions[index]
-                ProgressView(value: Double(index), total: Double(questions.count))
-                    .tint(Theme.gold)
+
+                HStack {
+                    Text("Question \(index + 1)/10")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Label("\(streak)", systemImage: "flame.fill")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(streak > 0 ? Theme.gold : .secondary)
+                        .contentTransition(.numericText())
+                }
+
+                timerBar
+
                 Text(q.text)
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .font(.system(size: 40, weight: .heavy, design: .rounded))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 32)
+                    .background(Theme.heroGradient)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
                     .contentTransition(.numericText())
+
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     ForEach(q.answers, id: \.self) { answer in
                         Button {
@@ -48,14 +74,40 @@ struct QuizGameView: View {
         .navigationTitle("Quiz Math")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { if questions.isEmpty { start() } }
+        .onReceive(timer) { _ in tick() }
         .animation(.snappy, value: index)
+    }
+
+    private var timerBar: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Theme.cardBackground)
+                Capsule()
+                    .fill(timeLeft > 2.5 ? Theme.success : Theme.danger)
+                    .frame(width: max(0, geo.size.width * timeLeft / questionTime))
+            }
+        }
+        .frame(height: 8)
+    }
+
+    private func tick() {
+        guard !finished, !questions.isEmpty, selected == nil else { return }
+        timeLeft -= 0.05
+        if timeLeft <= 0 {
+            selected = -1
+            streak = 0
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { advance() }
+        }
     }
 
     private func start() {
         finished = false
         index = 0
         correctCount = 0
+        streak = 0
+        bestStreak = 0
         selected = nil
+        timeLeft = questionTime
         questions = (0..<10).map { _ in
             let a = Int.random(in: 3...15)
             let b = Int.random(in: 3...15)
@@ -70,15 +122,25 @@ struct QuizGameView: View {
     }
 
     private func pick(_ answer: Int, question: Question) {
+        guard selected == nil else { return }
         selected = answer
-        if answer == question.correct { correctCount += 1 }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            selected = nil
-            if index + 1 < questions.count {
-                index += 1
-            } else {
-                finished = true
-            }
+        if answer == question.correct {
+            correctCount += 1
+            streak += 1
+            bestStreak = max(bestStreak, streak)
+        } else {
+            streak = 0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { advance() }
+    }
+
+    private func advance() {
+        selected = nil
+        timeLeft = questionTime
+        if index + 1 < questions.count {
+            index += 1
+        } else {
+            finished = true
         }
     }
 
