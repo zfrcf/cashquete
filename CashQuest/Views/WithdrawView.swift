@@ -18,10 +18,6 @@ struct WithdrawView: View {
         return end > .now ? end : nil
     }
 
-    private var sliderUpper: Double {
-        max(Double(minPoints) + 1, Double(balance))
-    }
-
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -41,16 +37,24 @@ struct WithdrawView: View {
 
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Amount").font(.headline)
-                        Slider(value: $points,
-                               in: Double(minPoints)...sliderUpper,
-                               step: 50)
-                        HStack {
-                            Text("\(Int(points)) pts").bold()
-                            Spacer()
-                            Text(Double(Int(points)) * data.config.pointValueUSD,
-                                 format: .currency(code: "USD"))
-                                .bold()
+                        if balance > minPoints {
+                            Slider(value: $points,
+                                   in: Double(minPoints)...Double(balance),
+                                   step: 50)
+                            HStack {
+                                Text("\(Int(points)) pts").bold()
+                                Spacer()
+                                Text(Double(Int(points)) * data.config.pointValueUSD,
+                                     format: .currency(code: "USD"))
+                                    .bold()
+                                    .foregroundStyle(Theme.gold)
+                            }
+                        } else {
+                            Text("\(balance) / \(minPoints) pts")
+                                .font(.title3.bold())
                                 .foregroundStyle(Theme.gold)
+                            ProgressView(value: Double(min(balance, minPoints)), total: Double(minPoints))
+                                .tint(Theme.gold)
                         }
                         Text("Minimum: \(minPoints) pts")
                             .font(.caption)
