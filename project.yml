@@ -41,7 +41,7 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
-        GADApplicationIdentifier: ca-app-pub-3940256099942544~1458002511
+        GADApplicationIdentifier: ca-app-pub-9250992440448321~2815719221
         NSUserTrackingUsageDescription: Cet identifiant sert à vous proposer des publicités plus pertinentes.
         SKAdNetworkItems:
           - SKAdNetworkIdentifier: cstr6suwn9.skadnetwork

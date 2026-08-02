@@ -8,8 +8,13 @@ xcuserdata/
 .build/
 .swiftpm/
 
+# Node
+node_modules/
+# npm install lancé par erreur dans firebase/ (le vrai package.json est dans firebase/functions/)
+firebase/package.json
+firebase/package-lock.json
+
 # Firebase
-firebase/functions/node_modules/
 firebase/.firebase/
 firebase-debug.log
 .firebaserc

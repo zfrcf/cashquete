@@ -3,7 +3,7 @@
   "description": "Backend CashQuest : quêtes, parrainage, retraits Tango Card Reward Link et PayPal Payouts",
   "main": "index.js",
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "dependencies": {
     "firebase-admin": "^12.0.0",

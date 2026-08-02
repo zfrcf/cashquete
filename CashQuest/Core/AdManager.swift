@@ -2,11 +2,19 @@ import SwiftUI
 import GoogleMobileAds
 
 /// Gère l'interstitiel « toutes les N interactions » et les rewarded videos.
-/// IDs de test Google — à remplacer par tes vrais blocs AdMob avant publication.
+/// En build de développement (simulateur, Xcode Run) : IDs de test Google —
+/// obligatoire, cliquer ses propres vraies pubs fait bannir le compte AdMob.
+/// En build de production (Archive/TestFlight/App Store) : les vrais blocs.
 @MainActor
 final class AdManager: NSObject, ObservableObject {
+    #if DEBUG
     private let interstitialUnitID = "ca-app-pub-3940256099942544/4411468910"
     private let rewardedUnitID = "ca-app-pub-3940256099942544/1712485313"
+    #else
+    private let interstitialUnitID = "ca-app-pub-9250992440448321/7684902524"
+    // TODO: créer un bloc "Avec récompense" dans AdMob et mettre son ID ici
+    private let rewardedUnitID = "ca-app-pub-3940256099942544/1712485313"
+    #endif
 
     @Published private(set) var tapCount = 0
     var tapInterval = 2
